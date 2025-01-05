@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes";
 import healthRoutes from "./routes/healthRoutes";
 import path from "path";
 import { limiter } from "./middleware/rateLimiter";
+import setUpSwagger from "./swagger"
 
 if(process.env.NODE_ENV === "test"){
   dotenv.config({path: ".env.test"});
@@ -21,6 +22,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(limiter);
+setUpSwagger(app)
 
 app.use("/api", bookRoutes);
 app.use("/api/users", userRoutes);

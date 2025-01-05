@@ -60,7 +60,8 @@ export const updateBookCover = async (req: Request, res: Response): Promise<void
 
 export const getAllBooks = async (req: Request, res: Response): Promise<void> => {
     try {
-      const books = await Book.find(); // Fetch all books from the database
+      const { page = 1, limit = 10 } = req.query;
+      const books = await Book.find().skip((+page - 1)* +limit).limit(+limit); // Fetch all books from the database
       res.status(200).json({
         success: true,
         data: books,

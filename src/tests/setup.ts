@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import http from "http"
-import app from "../index";
+import app from "../index"; // Path to your app
 import request from "supertest";
 import dotenv from "dotenv-safe";
 
 
 dotenv.config({ path: ".env.test"});
-let server: http.Server;
+let server: http.Server; // Store the server instance
+export let serverPort: number; // Store the dynamic port
 
 export let adminToken: string;
 export let userToken: string;
@@ -17,8 +18,11 @@ beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/test-books");
   }
 
-  server = app.listen(process.env.PORT || 4000);
-
+  server = app.listen(0, ()=>{
+    serverPort = (server.address() as any).port;
+    console.log(`Test server running on port ${serverPort}`);
+  });
+    
   // Seed admin user
   const adminResponse = await request(app).post("/api/users/register").send({
     name: "Admin User",
