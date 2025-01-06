@@ -5,7 +5,7 @@ import { createBook,
     getBookById, 
     updateBook, 
     deleteBook,} from "../controllers/bookController";
-import upload from "../middleware/upload";
+import {upload} from "../middleware/s3Uploader";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware";
 
 const router = express.Router();
@@ -79,7 +79,7 @@ const router = express.Router();
 
 router.post("/books",authenticateToken, authorizeRoles("root-admin", "admin"), createBook);
 
-router.patch("/books/cover-image/:id", upload.single("coverImage"), updateBookCover);
+router.patch("/books/cover-image/:id", upload.single("coverImage"), authenticateToken, updateBookCover);
 
 router.get("/books", authenticateToken, getAllBooks);
 

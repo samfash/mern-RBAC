@@ -27,7 +27,6 @@ setUpSwagger(app)
 app.use("/api", bookRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api", healthRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 
 if (process.env.NODE_ENV !== "test") {

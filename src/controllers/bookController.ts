@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Book from "../models/bookModel";
 import mongoose from "mongoose";
 import { bookSchema, idSchema } from "../utils/bookValidator";
+import {uploadToS3} from "../middleware/s3Uploader";
 
 
 export const createBook = async (req: Request, res: Response): Promise<void> => {
@@ -43,9 +44,11 @@ export const updateBookCover = async (req: Request, res: Response): Promise<void
         res.status(400).json({ error: "No file uploaded" });
         return;
       }
-  
+      
+      const fileUrl = await uploadToS3(req.file);
+
       // Update the cover image
-      book.coverImage = req.file.path;
+      book.coverImage = fileUrl;
       await book.save();
   
       res.status(200).json({ success: true, data: book });
@@ -53,7 +56,7 @@ export const updateBookCover = async (req: Request, res: Response): Promise<void
       if (error.message === "Only image files are allowed!") {
         res.status(500).json({ error: "Only image files are allowed!" });
       } else {
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ error: error.message||"Server error" });
       }
     }
   };
