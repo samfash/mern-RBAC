@@ -6,6 +6,7 @@ import connectDB from "./config/db";
 import bookRoutes from "./routes/bookRoutes";
 import userRoutes from "./routes/userRoutes";
 import healthRoutes from "./routes/healthRoutes";
+import adminRoute from "./routes/adminRoutes"
 import path from "path";
 import { limiter } from "./middleware/rateLimiter";
 import setUpSwagger from "./swagger"
@@ -27,7 +28,7 @@ setUpSwagger(app)
 app.use("/api", bookRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api", healthRoutes);
-
+app.use("/admin", adminRoute);
 
 if (process.env.NODE_ENV !== "test") {
   

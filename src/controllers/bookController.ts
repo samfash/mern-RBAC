@@ -64,7 +64,17 @@ export const updateBookCover = async (req: Request, res: Response): Promise<void
 export const getAllBooks = async (req: Request, res: Response): Promise<void> => {
     try {
       const { page = 1, limit = 10 } = req.query;
-      const books = await Book.find().skip((+page - 1)* +limit).limit(+limit); // Fetch all books from the database
+      const { author, title, startDate, endDate, sort } = req.query;
+      const query: any = {};
+    
+      if (author) query.author = new RegExp(author, "i");
+      if (title) query.title = new RegExp(title, "i");
+      if (startDate || endDate) {
+        query.publishedDate = { $gte: startDate, $lte: endDate };
+      }
+      const books = await Book.find(query).sort(sort).skip((+page - 1)* +limit).limit(+limit); // Fetch all books from the database
+      redis.set(req.originalUrl, JSON.stringify(books), "EX", 3600); // Cache for 1 hour
+
       res.status(200).json({
         success: true,
         data: books,

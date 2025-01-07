@@ -7,6 +7,7 @@ import { createBook,
     deleteBook,} from "../controllers/bookController";
 import {upload} from "../middleware/s3Uploader";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware";
+import { cache } from "../middleware/cacheMiddleware"
 
 const router = express.Router();
 
@@ -81,7 +82,7 @@ router.post("/books",authenticateToken, authorizeRoles("root-admin", "admin"), c
 
 router.patch("/books/cover-image/:id", upload.single("coverImage"), authenticateToken, updateBookCover);
 
-router.get("/books", authenticateToken, getAllBooks);
+router.get("/books", cache, authenticateToken, getAllBooks);
 
 /**
  * @swagger
