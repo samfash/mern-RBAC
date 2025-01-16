@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
+import mongoose, { SortOrder } from "mongoose";
 import Book from "../models/bookModel";
-import mongoose from "mongoose";
 import { bookSchema, idSchema } from "../utils/bookValidator";
 import {uploadToS3} from "../middleware/s3Uploader";
+import {redis} from "../middleware/cacheMiddleware"
 
 
 export const createBook = async (req: Request, res: Response): Promise<void> => {
@@ -62,23 +63,52 @@ export const updateBookCover = async (req: Request, res: Response): Promise<void
   };
 
 export const getAllBooks = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { page = 1, limit = 10 } = req.query;
-      const { author, title, startDate, endDate, sort } = req.query;
-      const query: any = {};
-    
-      if (author) query.author = new RegExp(author, "i");
-      if (title) query.title = new RegExp(title, "i");
-      if (startDate || endDate) {
-        query.publishedDate = { $gte: startDate, $lte: endDate };
-      }
-      const books = await Book.find(query).sort(sort).skip((+page - 1)* +limit).limit(+limit); // Fetch all books from the database
-      redis.set(req.originalUrl, JSON.stringify(books), "EX", 3600); // Cache for 1 hour
+  try {
+    // Extract and sanitize query parameters
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const author = typeof req.query.author === "string" ? req.query.author : null;
+    const title = typeof req.query.title === "string" ? req.query.title : null;
+    const startDate = req.query.startDate ? new Date(req.query.startDate as string) : null;
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : null;
+    const sort = typeof req.query.sort === "string" ? req.query.sort : null;
 
-      res.status(200).json({
-        success: true,
-        data: books,
-      });
+    // Build the query object
+    const query: any = {};
+    if (author) query.author = new RegExp(author, "i");
+    if (title) query.title = new RegExp(title, "i");
+    if (startDate || endDate) {
+      query.publishedDate = {
+        ...(startDate && { $gte: startDate }),
+        ...(endDate && { $lte: endDate }),
+      };
+    }
+
+    // Validate and build sort options
+    const sortOptions = sort
+      ? sort.split(",").reduce((acc: { [key: string]: SortOrder }, field) => {
+          const [key, order] = field.trim().split(":");
+          acc[key] = order === "desc" ? -1 : 1;
+          return acc;
+        }, {})
+      : null;
+
+    // Fetch books from the database
+    const books = await Book.find(query)
+      .sort(sortOptions)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Cache the result in Redis
+    if (redis){
+    redis.set(req.originalUrl, JSON.stringify(books), "EX", 3600); // Cache for 1 hour
+    }
+    
+    // Send the response
+    res.status(200).json({
+      success: true,
+      data: books,
+    });
     } catch (error) {
       res.status(500).json({ error: "Server error" });
     }

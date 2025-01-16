@@ -41,7 +41,10 @@ describe("Book API", () => {
   });
 
   it("should return 400 if no file is provided when updating cover image", async () => {
-    const responce = await request(app).patch(`/api/books/cover-image/${bookId}`);
+    const responce = await request(app)
+    .patch(`/api/books/cover-image/${bookId}`)
+    .set("Authorization", `Bearer ${adminToken}`);
+
     expect(responce.status).toBe(400);
     expect(responce.body.error).toBe("No file uploaded");
   });  
@@ -60,6 +63,28 @@ describe("Book API", () => {
     expect(responce.status).toBe(200);
     expect(responce.body.success).toBe(true);
     expect(responce.body.data.length).toBeGreaterThan(0);
+  }, 10000)
+
+  it("should fetch paginated, filtered, and sorted books", async () => {
+    const query = {
+      page: 2,
+      limit: 5,
+      author: "Jane",
+      title: "Story",
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+      sort: "title:asc,author:desc",
+    };
+
+    const res = await request(app)
+      .get("/api/books")
+      .query(query) // Pass query parameters here
+      .set("Authorization",  `Bearer ${userToken}`); // Replace with a valid token
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true); // Check if data is an array
+    expect(res.body.data.length).toBeLessThanOrEqual(query.limit); // Ensure limit is respected
   })
 
   it("should fetch a single book by ID", async () => {

@@ -12,6 +12,8 @@ export let serverPort: number; // Store the dynamic port
 export let adminToken: string;
 export let userToken: string;
 
+
+
 beforeAll(async () => {
   // Connect to test database
   if(!mongoose.connection.readyState){
@@ -58,3 +60,5 @@ afterAll(async () => {
     server.close();
   }
 });
+
+

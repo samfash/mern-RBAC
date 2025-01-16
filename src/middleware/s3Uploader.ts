@@ -1,8 +1,5 @@
 import multer from "multer";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import dotenv from "dotenv-safe"
-
-dotenv.config()
 
 const s3 = new S3Client({
   credentials: {
