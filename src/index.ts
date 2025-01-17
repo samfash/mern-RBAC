@@ -7,7 +7,6 @@ import bookRoutes from "./routes/bookRoutes";
 import userRoutes from "./routes/userRoutes";
 import healthRoutes from "./routes/healthRoutes";
 import adminRoute from "./routes/adminRoutes"
-import path from "path";
 import { limiter } from "./middleware/rateLimiter";
 import setUpSwagger from "./swagger"
 
